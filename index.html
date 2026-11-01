@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Luxe – Order Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf7f2;--card:#fff;--ink:#1f2a24;--muted:#6b756f;--brand:#0f5c4d;--brand2:#e8b04a;--line:#e6e0d4;--wa:#25d366}
+*{box-sizing:border-box;margin:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45}
+header{background:var(--brand);color:#fff;padding:28px 16px 24px;text-align:center}
+header h1{font-family:'Fraunces',Georgia,serif;font-size:2.2rem;font-weight:800;letter-spacing:.5px}
+header p{opacity:.9;margin-top:4px}
+header small{display:block;margin-top:6px;opacity:.75}
+.filters{display:flex;gap:8px;overflow-x:auto;padding:14px 16px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--line)}
+.filters button{flex:none;border:1px solid var(--line);background:#fff;padding:8px 16px;border-radius:99px;font:inherit;cursor:pointer}
+.filters button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+main{max-width:1000px;margin:0 auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.card img{width:100%;aspect-ratio:1;object-fit:cover;background:#ece6d8}
+.card div{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;flex:1}
+.card h3{font-size:.95rem}
+.card .d{color:var(--muted);font-size:.8rem;flex:1}
+.card .p{font-weight:700;color:var(--brand);font-size:1.05rem;margin-top:4px}
+.add{margin-top:8px;border:0;background:var(--brand2);color:#2b2108;font:inherit;font-weight:700;padding:9px;border-radius:8px;cursor:pointer;transition:transform .15s}
+.add:active{transform:scale(.95)}
+.fab{position:fixed;right:16px;width:56px;height:56px;border-radius:50%;border:0;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;z-index:10;text-decoration:none;font-size:1.5rem}
+#cartBtn{bottom:16px;background:var(--brand);color:#fff}
+#waBtn{bottom:84px;background:var(--wa);color:#fff}
+#cartBtn.bump{animation:bump .35s}
+@keyframes bump{50%{transform:scale(1.25)}}
+#count{position:absolute;top:-4px;right:-4px;background:#d94b2b;color:#fff;font-size:.75rem;font-weight:700;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;padding:0 5px}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.overlay.open{display:flex}
+.sheet{background:#fff;width:100%;max-width:520px;max-height:90vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px;animation:up .25s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet h2{font-family:'Fraunces',serif;margin-bottom:10px}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}
+.row b{font-size:.95rem}.row small{color:var(--muted)}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:1.1rem;cursor:pointer}
+.rm{background:none;border:0;color:#d94b2b;cursor:pointer;font:inherit;font-size:.8rem;padding:0}
+.total{display:flex;justify-content:space-between;font-size:1.2rem;font-weight:700;padding:14px 0}
+.btn{width:100%;border:0;background:var(--brand);color:#fff;font:inherit;font-weight:700;padding:13px;border-radius:10px;cursor:pointer}
+.btn.alt{background:none;color:var(--muted);margin-top:6px}
+label{display:block;font-size:.85rem;font-weight:500;margin:10px 0 4px}
+input,textarea{width:100%;font:inherit;padding:11px;border:1px solid var(--line);border-radius:8px}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.err{color:#d94b2b;font-size:.85rem;margin-top:8px}
+.ok{text-align:center;padding:10px 0}.ok p{margin:10px 0}
+.empty{color:var(--muted);text-align:center;padding:24px 0}
+.wa-link{display:inline-block;background:var(--wa);color:#fff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:10px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Luxe</h1>
+  <p>Authentic Indian goods, delivered to your door</p>
+  <small>Serving all of India · Order now, we confirm on WhatsApp</small>
+</header>
+
+<nav class="filters" id="filters" aria-label="Categories"></nav>
+<main id="grid"></main>
+
+<a class="fab" id="waBtn" href="#" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">💬</a>
+<button class="fab" id="cartBtn" aria-label="Open cart">🛒<span id="count">0</span></button>
+
+<div class="overlay" id="cartOv"><div class="sheet" id="cartSheet"></div></div>
+<div class="overlay" id="formOv"><div class="sheet" id="formSheet"></div></div>
+
+<script>
+/* ===== CONFIG: edit these ===== */
+const SHOP = {
+  name: "Luxe",
+  whatsapp: "916001708086",              // country code + number, no + or spaces
+  ownerEmail: "Illfb493@gmail.com",
+  formspreeId: "YOUR_FORM_ID"            // optional: leave as is to take orders on WhatsApp only
+};
+/* Prices in ₹. Replace image URLs with your imgbb direct links (https://i.ibb.co/...). */
+const PRODUCTS = [
+  {id:1,name:"Aashirvaad Atta (5kg)",price:280,cat:"Groceries",img:"https://i.ibb.co/xxxxx/atta.jpg",desc:"Premium whole wheat flour"},
+  {id:2,name:"Basmati Rice (1kg)",price:140,cat:"Groceries",img:"https://i.ibb.co/xxxxx/rice.jpg",desc:"Long-grain aged basmati"},
+  {id:3,name:"Amul Butter (500g)",price:280,cat:"Dairy",img:"https://i.ibb.co/xxxxx/butter.jpg",desc:"Fresh salted butter"},
+  {id:4,name:"Fresh Paneer (200g)",price:90,cat:"Dairy",img:"https://i.ibb.co/xxxxx/paneer.jpg",desc:"Soft, made fresh daily"},
+  {id:5,name:"Masala Peanuts (200g)",price:60,cat:"Snacks",img:"https://i.ibb.co/xxxxx/peanuts.jpg",desc:"Crunchy spiced peanuts"},
+  {id:6,name:"Namkeen Mix (400g)",price:100,cat:"Snacks",img:"https://i.ibb.co/xxxxx/namkeen.jpg",desc:"Classic tea-time mixture"},
+  {id:7,name:"Masala Chai (250g)",price:120,cat:"Beverages",img:"https://i.ibb.co/xxxxx/chai.jpg",desc:"Strong Assam tea with spices"},
+  {id:8,name:"Mango Juice (1L)",price:110,cat:"Beverages",img:"https://i.ibb.co/xxxxx/mango.jpg",desc:"Thick Alphonso-style pulp"}
+];
+/* ===== END CONFIG ===== */
+
+const $ = s => document.querySelector(s);
+const inr = n => "₹" + n.toLocaleString("en-IN");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let cart = {}, activeCat = "All";
+try { cart = JSON.parse(localStorage.getItem("luxe_cart")) || {}; } catch(e) {}
+const save = () => { try { localStorage.setItem("luxe_cart", JSON.stringify(cart)); } catch(e) {} };
+const items = () => Object.keys(cart).map(id => ({...PRODUCTS.find(p => p.id == id), qty: cart[id]})).filter(i => i.name);
+const total = () => items().reduce((s,i) => s + i.price*i.qty, 0);
+
+$("#waBtn").href = "https://wa.me/" + SHOP.whatsapp + "?text=" + encodeURIComponent("Hi " + SHOP.name + ", I have a question.");
+
+function renderFilters(){
+  const cats = ["All", ...new Set(PRODUCTS.map(p => p.cat))];
+  $("#filters").innerHTML = cats.map(c => `<button class="${c===activeCat?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+}
+function renderGrid(){
+  $("#grid").innerHTML = PRODUCTS.filter(p => activeCat==="All" || p.cat===activeCat).map(p => `
+    <article class="card">
+      <img src="${esc(p.img)}" alt="${esc(p.name)}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 10 10&quot;><rect width=&quot;10&quot; height=&quot;10&quot; fill=&quot;%23ece6d8&quot;/></svg>')">
+      <div><h3>${esc(p.name)}</h3><span class="d">${esc(p.desc)}</span><span class="p">${inr(p.price)}</span>
+      <button class="add" data-id="${p.id}">Add to cart</button></div>
+    </article>`).join("");
+}
+function updateCount(){
+  const n = Object.values(cart).reduce((a,b) => a+b, 0);
+  $("#count").textContent = n;
+  const b = $("#cartBtn"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump");
+}
+function renderCart(){
+  const list = items();
+  $("#cartSheet").innerHTML = `<h2>Your cart</h2>` + (list.length ? list.map(i => `
+    <div class="row"><div><b>${esc(i.name)}</b><br><small>${inr(i.price)} each</small></div>
+    <div style="text-align:right"><b>${inr(i.price*i.qty)}</b></div>
+    <div class="qty"><button data-m="${i.id}" aria-label="Decrease">−</button><span>${i.qty}</span><button data-p="${i.id}" aria-label="Increase">+</button></div>
+    <div style="text-align:right"><button class="rm" data-r="${i.id}">Remove</button></div></div>`).join("") + `
+    <div class="total"><span>Total</span><span>${inr(total())}</span></div>
+    <button class="btn" id="toForm">Place order</button>` : `<p class="empty">Your cart is empty. Add something you like.</p>`)
+    + `<button class="btn alt" data-close>Keep shopping</button>`;
+}
+function renderForm(){
+  $("#formSheet").innerHTML = `<h2>Delivery details</h2>
+  <form id="orderForm">
+    <label for="n">Name</label><input id="n" name="name" required autocomplete="name">
+    <label for="p">Phone number</label><input id="p" name="phone" type="tel" required pattern="[0-9+ ]{10,15}" autocomplete="tel">
+    <label for="a">Delivery address</label><textarea id="a" name="address" rows="3" required autocomplete="street-address"></textarea>
+    <label for="s">Special instructions (optional)</label><textarea id="s" name="instructions" rows="2"></textarea>
+    <div class="total"><span>Total</span><span>${inr(total())}</span></div>
+    <button class="btn" type="submit" id="sendBtn">Send order</button>
+    <button class="btn alt" type="button" data-back>Back to cart</button>
+    <p class="err" id="err" hidden></p>
+  </form>`;
+}
+function summary(){
+  return items().map((i,k) => `${k+1}. ${i.name} — ${i.qty} x ${inr(i.price)} = ${inr(i.price*i.qty)}`).join("\n");
+}
+async function submitOrder(e){
+  e.preventDefault();
+  const f = e.target, btn = $("#sendBtn"), err = $("#err");
+  err.hidden = true;
+  const d = Object.fromEntries(new FormData(f));
+  const order = summary(), sum = total();
+  const emailOn = SHOP.formspreeId !== "YOUR_FORM_ID";
+  const wa = "https://wa.me/" + SHOP.whatsapp + "?text=" + encodeURIComponent(`New order — ${SHOP.name}\n\nItems:\n${order}\n\nTotal: ${inr(sum)}\n\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.address}\nInstructions: ${d.instructions || "None"}`);
+  const done = () => {
+    cart = {}; save(); updateCount(); renderGrid();
+    $("#formSheet").innerHTML = `<div class="ok"><h2>Order ready!</h2><p>${emailOn ? esc(SHOP.name) + " has received your order and will contact you on WhatsApp to confirm. You can also send it on WhatsApp now." : "Tap the button and press Send in WhatsApp to place your order. " + esc(SHOP.name) + " will confirm with you there."}</p><a class="wa-link" href="${wa}" target="_blank" rel="noopener">Send order on WhatsApp</a><br><br><button class="btn alt" data-close>Close</button></div>`;
+  };
+  if (!emailOn){ window.open(wa, "_blank"); done(); return; }
+  const body = {
+    _subject: `New order from ${d.name} — ${inr(sum)}`,
+    customer_name: d.name, customer_phone: d.phone, delivery_address: d.address,
+    special_instructions: d.instructions || "None",
+    order_items: "\n" + order, grand_total: inr(sum),
+    message: `NEW ORDER — ${SHOP.name}\n\nITEMS\n${order}\n\nGRAND TOTAL: ${inr(sum)}\n\nCUSTOMER\nName: ${d.name}\nPhone: ${d.phone}\nAddress: ${d.address}\nInstructions: ${d.instructions || "None"}`
+  };
+  btn.disabled = true; btn.textContent = "Sending…";
+  try{
+    const r = await fetch("https://formspree.io/f/" + SHOP.formspreeId, {method:"POST", headers:{"Content-Type":"application/json","Accept":"application/json"}, body: JSON.stringify(body)});
+    if (!r.ok) throw 0;
+    done();
+  }catch(x){
+    btn.disabled = false; btn.textContent = "Send order";
+    err.textContent = "Couldn’t send your order. Check your connection and try again, or message us on WhatsApp."; err.hidden = false;
+  }
+}
+
+document.addEventListener("click", e => {
+  const t = e.target;
+  if (t.dataset.c){ activeCat = t.dataset.c; renderFilters(); renderGrid(); }
+  if (t.classList.contains("add")){ const id = t.dataset.id; cart[id] = (cart[id]||0)+1; save(); updateCount(); t.textContent = "Added ✓"; setTimeout(() => t.textContent = "Add to cart", 900); }
+  if (t.closest("#cartBtn")){ renderCart(); $("#cartOv").classList.add("open"); }
+  if (t.dataset.p){ cart[t.dataset.p]++; save(); updateCount(); renderCart(); }
+  if (t.dataset.m){ if(--cart[t.dataset.m] <= 0) delete cart[t.dataset.m]; save(); updateCount(); renderCart(); }
+  if (t.dataset.r){ delete cart[t.dataset.r]; save(); updateCount(); renderCart(); }
+  if (t.id === "toForm"){ $("#cartOv").classList.remove("open"); renderForm(); $("#formOv").classList.add("open"); }
+  if (t.dataset.back !== undefined){ $("#formOv").classList.remove("open"); renderCart(); $("#cartOv").classList.add("open"); }
+  if (t.dataset.close !== undefined || t.classList.contains("overlay")){ document.querySelectorAll(".overlay").forEach(o => o.classList.remove("open")); }
+});
+document.addEventListener("submit", e => { if (e.target.id === "orderForm") submitOrder(e); });
+
+renderFilters(); renderGrid(); updateCount();
+</script>
+</body>
+</html>
